@@ -246,3 +246,58 @@ WHERE client.branch_id
     = (SELECT branch.branch_id FROM branch
     WHERE branch.mgr_id = '102'
     LIMIT 1);
+
+-- DELETE options NULL vs CASCADE 
+
+DELETE FROM employee
+WHERE emp_id = 102;
+
+DELETE FROM branch
+WHERE branch_id = 2;
+
+
+-- Tiggers
+
+DELIMITER $$ 
+CREATE
+    TRIGGER my_trigger1 BEFORE INSERT
+    ON employee
+    FOR EACH ROW BEGIN
+        INSERT INTO trigger_test VALUES('added new employee');
+    END$$ 
+DELIMITER ; 
+
+
+DELIMITER $$ 
+CREATE
+    TRIGGER my_trigger2 BEFORE INSERT
+    ON employee
+    FOR EACH ROW BEGIN
+        INSERT INTO trigger_test VALUES(NEW.first_name);
+    END$$ 
+DELIMITER ; 
+
+INSERT INTO employee
+VALUES (109, 'Oscar', 'Martinez', '1968-02-19', 'M', 69000, 106, 3);
+
+SELECT * FROM trigger_test;
+
+DELIMITER $$ 
+CREATE
+    TRIGGER my_trigger3 BEFORE INSERT
+    ON employee
+    FOR EACH ROW BEGIN
+        IF NEW.sex = 'M' THEN
+            INSERT INTO trigger_test VALUES('added male employee');
+        ELSEIF NEW.sex = 'F' THEN
+            INSERT INTO trigger_test VALUES('added female employee');
+        ELSE
+            INSERT INTO trigger_test VALUES('added other employee');
+        END IF;
+    END$$ 
+DELIMITER ; 
+
+INSERT INTO employee
+VALUES(111, 'Pam', 'Beesly', '1988-02-19', 'F', 69000, 106, 3);
+
+SELECT * FROM trigger_test;
